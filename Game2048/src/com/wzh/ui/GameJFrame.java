@@ -165,6 +165,8 @@ public class GameJFrame extends JFrame {
                 switch (keyCode) {
                     case KeyEvent.VK_UP -> moveUp();
                     case KeyEvent.VK_DOWN -> moveDown();
+                    case KeyEvent.VK_LEFT -> moveLeft();
+                    case KeyEvent.VK_RIGHT -> moveRight();
                 }
 
             }
@@ -175,27 +177,17 @@ public class GameJFrame extends JFrame {
         });
     }
 
+    // 向上移动
     private void moveUp() {
-
-    }
-
-    private void moveDown() {
-        // 遍历四个列blocks[i][0~3]
+        boolean ifHaveMove = false;
+        // 遍历四个列blocks[i][3~0]
         for (int i = 0; i < 4; i++) {
-
-            // 测试输出
-//            System.out.println("第" + i + "列初始状态");
-//            for (int i1 = 0; i1 < 4; i1++) {
-//                if (blocks[i][i1] == null) System.out.print(0);
-//                else System.out.print(blocks[i][i1].num);
-//            }
-//            System.out.print("\n");
-
             NumberBlock previous = null;
             // 在一趟循环中处理合并
-            for (int j = 3; j >= 0; j--) {
+            for (int j = 0; j < 4; j++) {
                 if (blocks[i][j] != null) {
                     if (previous != null && blocks[i][j].num == previous.num) {
+                        ifHaveMove = true;
                         // 合并blocks[i][j]和previous
                         mergeBlocks(blocks[i][j], previous);
                         previous = null;
@@ -205,18 +197,61 @@ public class GameJFrame extends JFrame {
                 }
             }
 
-            // 测试输出
-//            System.out.println("第" + i + "列第一趟循环处理后");
-//            for (int i1 = 0; i1 < 4; i1++) {
-//                if (blocks[i][i1] == null) System.out.print(0);
-//                else System.out.print(blocks[i][i1].num);
-//            }
-//            System.out.print("\n");
+            // 在第二趟循环里重新排列
+            int ptr = 0; // 从最上面存起
+            boolean isBeforeNull = false;
+            for (int k = 0; k < 4; k++) {
+                if (blocks[i][k] != null) {
+                    if (isBeforeNull) ifHaveMove = true;
+                    isBeforeNull = false;
+                    // 先从视觉上移动
+                    moveBlockWithAnimation(blocks[i][k], MapUtil.ChangeLogicPosToActPos(i, ptr).x,
+                            MapUtil.ChangeLogicPosToActPos(i, ptr).y);
+                    // 更新blocks存储
+                    blocks[i][ptr] = blocks[i][k];
+                    if (k != ptr) blocks[i][k] = null;
+                    // 更新point
+                    blocks[i][ptr].setPoint(i, ptr);
+                    ptr++;
+                } else isBeforeNull = true;
+            }
+        }
+
+        // 应该只有在移动过的情况下才新建方块
+        if (ifHaveMove) CreateBlock();
+
+        // 强制刷屏
+        this.getLayeredPane().revalidate();
+        this.getLayeredPane().repaint();
+    }
+
+    // 向下移动
+    private void moveDown() {
+        boolean ifHaveMove = false;
+        // 遍历四个列blocks[i][0~3]
+        for (int i = 0; i < 4; i++) {
+            NumberBlock previous = null;
+            // 在一趟循环中处理合并
+            for (int j = 3; j >= 0; j--) {
+                if (blocks[i][j] != null) {
+                    if (previous != null && blocks[i][j].num == previous.num) {
+                        ifHaveMove = true;
+                        // 合并blocks[i][j]和previous
+                        mergeBlocks(blocks[i][j], previous);
+                        previous = null;
+                        continue;
+                    }
+                    previous = blocks[i][j];
+                }
+            }
 
             // 在第二趟循环里重新排列
             int ptr = 3; // 从最底下存起
+            boolean isBeforeNull = false;
             for (int k = 3; k >= 0; k--) {
                 if (blocks[i][k] != null) {
+                    if (isBeforeNull) ifHaveMove = true;
+                    isBeforeNull = false;
                     // 先从视觉上移动
                     moveBlockWithAnimation(blocks[i][k], MapUtil.ChangeLogicPosToActPos(i, ptr).x,
                             MapUtil.ChangeLogicPosToActPos(i, ptr).y);
@@ -226,22 +261,112 @@ public class GameJFrame extends JFrame {
                     // 更新point
                     blocks[i][ptr].setPoint(i, ptr);
                     ptr--;
+                } else isBeforeNull = true;
+            }
+        }
+
+        // 应该只有在移动过的情况下才新建方块
+        if (ifHaveMove) CreateBlock();
+
+        // 强制刷屏
+        this.getLayeredPane().revalidate();
+        this.getLayeredPane().repaint();
+    }
+
+    // 向左移动
+    private void moveLeft() {
+        boolean ifHaveMove = false;
+        // 遍历四个行blocks[0~3][i]
+        for (int i = 0; i < 4; i++) {
+            NumberBlock previous = null;
+            // 在一趟循环中处理合并
+            for (int j = 0; j < 4; j++) {
+                if (blocks[j][i] != null) {
+                    if (previous != null && blocks[j][i].num == previous.num) {
+                        ifHaveMove = true;
+                        // 合并blocks[j][i]和previous
+                        mergeBlocks(blocks[j][i], previous);
+                        previous = null;
+                        continue;
+                    }
+                    previous = blocks[j][i];
                 }
             }
 
-            // 测试输出
-//            System.out.println("第" + i + "列第二次循环后");
-//            for (int i1 = 0; i1 < 4; i1++) {
-//                if (blocks[i][i1] == null) System.out.print(0);
-//                else System.out.print(blocks[i][i1].num);
-//            }
-//            System.out.print("\n");
+            // 在第二趟循环里重新排列
+            int ptr = 0; // 从最左边存起
+            boolean isBeforeNull = false;
+            for (int k = 0; k < 4; k++) {
+                if (blocks[k][i] != null) {
+                    if (isBeforeNull) ifHaveMove = true;
+                    isBeforeNull = false;
+                    // 先从视觉上移动
+                    moveBlockWithAnimation(blocks[k][i], MapUtil.ChangeLogicPosToActPos(ptr, i).x,
+                            MapUtil.ChangeLogicPosToActPos(ptr, i).y);
+                    // 更新blocks存储
+                    blocks[ptr][i] = blocks[k][i];
+                    if (k != ptr) blocks[k][i] = null;
+                    // 更新point
+                    blocks[ptr][i].setPoint(ptr, i);
+                    ptr++;
+                } else isBeforeNull = true;
+            }
         }
-        CreateBlock();
+
+        // 应该只有在移动过的情况下才新建方块
+        if (ifHaveMove) CreateBlock();
 
         // 强制刷屏
-        this.getLayeredPane().revalidate(); // 告诉 Swing 布局变了
-        this.getLayeredPane().repaint();    // 告诉 Swing 必须立刻重画
+        this.getLayeredPane().revalidate();
+        this.getLayeredPane().repaint();
+    }
+
+    // 向右移动
+    private void moveRight() {
+        boolean ifHaveMove = false;
+        // 遍历四个行blocks[0~3][i]
+        for (int i = 0; i < 4; i++) {
+            NumberBlock previous = null;
+            // 在一趟循环中处理合并
+            for (int j = 3; j >= 0; j--) {
+                if (blocks[j][i] != null) {
+                    if (previous != null && blocks[j][i].num == previous.num) {
+                        ifHaveMove = true;
+                        // 合并blocks[j][i]和previous
+                        mergeBlocks(blocks[j][i], previous);
+                        previous = null;
+                        continue;
+                    }
+                    previous = blocks[j][i];
+                }
+            }
+
+            // 在第二趟循环里重新排列
+            int ptr = 3; // 从最右边存起
+            boolean isBeforeNull = false;
+            for (int k = 3; k >= 0; k--) {
+                if (blocks[k][i] != null) {
+                    if (isBeforeNull) ifHaveMove = true;
+                    isBeforeNull = false;
+                    // 先从视觉上移动
+                    moveBlockWithAnimation(blocks[k][i], MapUtil.ChangeLogicPosToActPos(ptr, i).x,
+                            MapUtil.ChangeLogicPosToActPos(ptr, i).y);
+                    // 更新blocks存储
+                    blocks[ptr][i] = blocks[k][i];
+                    if (k != ptr) blocks[k][i] = null;
+                    // 更新point
+                    blocks[ptr][i].setPoint(ptr, i);
+                    ptr--;
+                } else isBeforeNull = true;
+            }
+        }
+
+        // 应该只有在移动过的情况下才新建方块
+        if (ifHaveMove) CreateBlock();
+
+        // 强制刷屏
+        this.getLayeredPane().revalidate();
+        this.getLayeredPane().repaint();
     }
 
     // 把a合并到b上
