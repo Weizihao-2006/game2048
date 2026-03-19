@@ -13,6 +13,10 @@ import java.awt.event.KeyListener;
 import java.util.Random;
 
 public class GameJFrame extends JFrame {
+    private int score;
+    private JLabel scoreLabel;
+    private JLabel highScoreLabel;
+    private int highScore = 0;
     private NumberBlock[][] blocks = new NumberBlock[4][4];
 
     public GameJFrame() {
@@ -22,10 +26,12 @@ public class GameJFrame extends JFrame {
     public GameJFrame(int width, int height) {
         // 取消默认坐标
         this.setLayout(null);
+        this.score = 0;
 
         // 各种初始化逻辑
         initFrame(width, height);
         initJMenuBar();
+        initScoreDisplay();  // 新增：初始化分数显示
         initBorder();
         initShadow();
         initNumBlock();
@@ -77,6 +83,22 @@ public class GameJFrame extends JFrame {
         this.setJMenuBar(bar);
     }
 
+    // 初始化分数显示
+    private void initScoreDisplay() {
+        // 分数标签
+        scoreLabel = new JLabel("分数: 0");
+        //scoreLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
+        scoreLabel.setForeground(new Color(119, 110, 101)); // 深灰色
+        scoreLabel.setBounds(450, 80, 200, 40);
+        this.getContentPane().add(scoreLabel);
+        
+        // 最高分标签（可选）
+        highScoreLabel = new JLabel("最高分: 0");
+        //highScoreLabel.setFont(new Font("微软雅黑", Font.PLAIN, 18));
+        highScoreLabel.setForeground(new Color(119, 110, 101));
+        highScoreLabel.setBounds(450, 120, 200, 30);
+        this.getContentPane().add(highScoreLabel);
+    }
     // 初始化边框
     private void initBorder() {
         JLayeredPane layeredPane = this.getLayeredPane();
@@ -415,7 +437,23 @@ public class GameJFrame extends JFrame {
         Point point = b.point;
         this.removeBlockAt(a.point.x, a.point.y);
         this.removeBlockAt(b.point.x, b.point.y);
+        // 更新分数：新方块的值加到总分
+        int newNum = num * 2;
+        score += newNum;
+        updateScoreDisplay();
         this.CreateBlock(point.x, point.y, num * 2);
+    }
+
+        // 更新分数显示
+    private void updateScoreDisplay() {
+        // 更新当前分数
+        scoreLabel.setText("分数: " + score);
+        
+        // 更新最高分
+        if (score > highScore) {
+            highScore = score;
+            highScoreLabel.setText("最高分: " + highScore);
+        }
     }
 
     // 移除指定位置的方块
