@@ -190,6 +190,9 @@ public class GameJFrame extends JFrame {
                         ifHaveMove = true;
                         // 合并blocks[i][j]和previous
                         mergeBlocks(blocks[i][j], previous);
+
+                        blocks[previous.point.x][previous.point.y].ismerged = true;
+
                         previous = null;
                         continue;
                     }
@@ -215,10 +218,17 @@ public class GameJFrame extends JFrame {
                     ptr++;
                 } else isBeforeNull = true;
             }
+
+            for (int k = 0; k < 4; k++) {
+                if (blocks[i][k] != null && blocks[i][k].ismerged) {
+                    playPopEffect(blocks[i][k]);
+                    blocks[i][k].ismerged = false;
+                }
+            }
         }
 
         // 应该只有在移动过的情况下才新建方块
-        if (ifHaveMove) CreateBlock();
+        if (ifHaveMove) CreateBlockWithDelay();
 
         // 强制刷屏
         this.getLayeredPane().revalidate();
@@ -238,6 +248,9 @@ public class GameJFrame extends JFrame {
                         ifHaveMove = true;
                         // 合并blocks[i][j]和previous
                         mergeBlocks(blocks[i][j], previous);
+
+                        blocks[previous.point.x][previous.point.y].ismerged = true;
+
                         previous = null;
                         continue;
                     }
@@ -263,10 +276,17 @@ public class GameJFrame extends JFrame {
                     ptr--;
                 } else isBeforeNull = true;
             }
+
+            for (int k = 3; k >= 0; k--) {
+                if (blocks[i][k] != null && blocks[i][k].ismerged) {
+                    playPopEffect(blocks[i][k]);
+                    blocks[i][k].ismerged = false;
+                }
+            }
         }
 
         // 应该只有在移动过的情况下才新建方块
-        if (ifHaveMove) CreateBlock();
+        if (ifHaveMove) CreateBlockWithDelay();
 
         // 强制刷屏
         this.getLayeredPane().revalidate();
@@ -286,6 +306,9 @@ public class GameJFrame extends JFrame {
                         ifHaveMove = true;
                         // 合并blocks[j][i]和previous
                         mergeBlocks(blocks[j][i], previous);
+
+                        blocks[previous.point.x][previous.point.y].ismerged = true;
+
                         previous = null;
                         continue;
                     }
@@ -311,10 +334,17 @@ public class GameJFrame extends JFrame {
                     ptr++;
                 } else isBeforeNull = true;
             }
+
+            for (int k = 0; k < 4; k++) {
+                if (blocks[k][i] != null && blocks[k][i].ismerged) {
+                    playPopEffect(blocks[k][i]);
+                    blocks[k][i].ismerged = false;
+                }
+            }
         }
 
         // 应该只有在移动过的情况下才新建方块
-        if (ifHaveMove) CreateBlock();
+        if (ifHaveMove) CreateBlockWithDelay();
 
         // 强制刷屏
         this.getLayeredPane().revalidate();
@@ -334,6 +364,9 @@ public class GameJFrame extends JFrame {
                         ifHaveMove = true;
                         // 合并blocks[j][i]和previous
                         mergeBlocks(blocks[j][i], previous);
+
+                        blocks[previous.point.x][previous.point.y].ismerged = true;
+
                         previous = null;
                         continue;
                     }
@@ -359,10 +392,17 @@ public class GameJFrame extends JFrame {
                     ptr--;
                 } else isBeforeNull = true;
             }
+
+            for (int k = 3; k >= 0; k--) {
+                if (blocks[k][i] != null && blocks[k][i].ismerged) {
+                    playPopEffect(blocks[k][i]);
+                    blocks[k][i].ismerged = false;
+                }
+            }
         }
 
         // 应该只有在移动过的情况下才新建方块
-        if (ifHaveMove) CreateBlock();
+        if (ifHaveMove) CreateBlockWithDelay();
 
         // 强制刷屏
         this.getLayeredPane().revalidate();
@@ -415,5 +455,50 @@ public class GameJFrame extends JFrame {
             }
         });
         timer.start();
+    }
+
+    private void CreateBlockWithDelay() {
+        Timer delayTimer = new Timer(100, e -> {
+            // 这里写延时后要执行的代码
+            CreateBlock();
+        });
+
+        delayTimer.setRepeats(false); // 设置只执行一次
+        delayTimer.start(); // 启动
+    }
+
+    private void playPopEffect(NumberBlock block) {
+        if (block == null) return;
+
+        int normalSize = MapUtil.BLOCK_SIZE;
+        // 获取它当前的视觉位置
+        int centerX = MapUtil.ChangeLogicPosToActPos(block.point.x, block.point.y).x;
+        int centerY = MapUtil.ChangeLogicPosToActPos(block.point.x, block.point.y).y;
+
+        int maxExtra = 16; // 变大的像素量
+        Timer popTimer = new Timer(10, new ActionListener() {
+            int step = 0;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                step++;
+                if (step <= 5) {
+                    // 放大阶段
+                    int currentExtra = (step * maxExtra) / 5;
+                    block.setBounds(centerX - currentExtra / 2, centerY - currentExtra / 2,
+                            normalSize + currentExtra, normalSize + currentExtra);
+                } else if (step <= 10) {
+                    // 回缩阶段
+                    int currentExtra = ((10 - step) * maxExtra) / 5;
+                    block.setBounds(centerX - currentExtra / 2, centerY - currentExtra / 2,
+                            normalSize + currentExtra, normalSize + currentExtra);
+                } else {
+                    // 彻底还原
+                    block.setBounds(centerX, centerY, normalSize, normalSize);
+                    ((Timer) e.getSource()).stop();
+                }
+            }
+        });
+        popTimer.start();
     }
 }

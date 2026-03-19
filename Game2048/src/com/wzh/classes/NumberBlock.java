@@ -8,8 +8,10 @@ import java.awt.*;
 public class NumberBlock extends JLabel {
     public int num;
     public Point point = new Point(-1, -1);
+    public boolean ismerged;
 
     public NumberBlock() {
+        this.ismerged = false;
         this.setFont(new Font("Arial", Font.BOLD, 40));
         this.setHorizontalAlignment(SwingConstants.CENTER); // 文字水平居中
         this.setVerticalAlignment(SwingConstants.CENTER); // 文字垂直居中
